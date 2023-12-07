@@ -58,5 +58,5 @@ As you can see, I'm using ingress-nginx controller (outside of the scope for thi
 After creating the `values.yaml` file, you can install this chart:
 
 ```bash
-helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.0/pihole-0.1.0.tgz -f values.yaml
+helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.1/pihole-0.1.1.tgz -f values.yaml
 ```
