@@ -37,6 +37,11 @@ pvc:
     storageClassName: ""
     size: 1Gi
 
+auth:
+  # Password to the Web UI
+  password: "<<base64 encoded password here>"
+  # secretName: "<<name of the secret containing "webpassword" key>"
+
 dnsTcpOnHost:
   enabled: true
   hostIP: "10.0.0.10"
