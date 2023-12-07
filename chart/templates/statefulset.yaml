@@ -1,0 +1,115 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "pihole.fullname" . }}
+  labels:
+    {{- include "pihole.labels" . | nindent 4 }}
+spec:
+  serviceName: {{ .Values.serviceName }}
+  selector:
+    matchLabels:
+      {{- include "pihole.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "pihole.selectorLabels" . | nindent 8 }}
+    spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "pihole.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
+      volumes:
+        - name: webpassword
+          secret:
+            secretName: {{ include "pihole.webpasswordSecretName" . }}
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          env:
+            - name: WEBPASSWORD_FILE
+              value: /opt/secrets/webpassword
+            - name: TIMEZONE
+              value: {{ .Values.timezone }}
+            - name: PIHOLE_DNS_
+              value: {{ .Values.upstreamDNS | join ";" }}
+          volumeMounts:
+            - name: {{ include "pihole.fullname" . }}-etc-pihole
+              mountPath: /etc/pihole
+            - name: {{ include "pihole.fullname" . }}-etc-dnsmasqd
+              mountPath: /etc/dnsmasq.d
+            - name: webpassword
+              mountPath: /opt/secrets/
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+              {{ if .Values.httpOnHost.enabled }}
+              hostIP: {{ .Values.httpOnHost.hostIP }}
+              hostPort: {{ .Values.httpOnHost.hostPort }}
+              {{ end }}
+            - name: dns-tcp
+              containerPort: 53
+              protocol: TCP
+              {{ if .Values.dnsTcpOnHost.enabled }}
+              hostIP: {{ .Values.dnsTcpOnHost.hostIP }}
+              hostPort: {{ .Values.dnsTcpOnHost.hostPort }}
+              {{ end }}
+            - name: dns-udp
+              containerPort: 53
+              protocol: UDP
+              {{ if .Values.dnsUdpOnHost.enabled }}
+              hostIP: {{ .Values.dnsUdpOnHost.hostIP }}
+              hostPort: {{ .Values.dnsUdpOnHost.hostPort }}
+              {{ end }}
+          livenessProbe:
+            httpGet:
+              path: /admin
+              port: http
+          readinessProbe:
+            httpGet:
+              path: /admin
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ include "pihole.fullname" . }}-etc-pihole
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.pvc.etc_pihole.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.pvc.etc_pihole.size }}
+    - metadata:
+        name: {{ include "pihole.fullname" . }}-etc-dnsmasqd
+      spec:
+        accessModes:
+          - ReadWriteOnce
+        storageClassName: {{ .Values.pvc.etc_dnsmasqd.storageClassName }}
+        resources:
+          requests:
+            storage: {{ .Values.pvc.etc_dnsmasqd.size }}

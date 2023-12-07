@@ -1,0 +1,31 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pihole.fullname" . }}-http
+  labels: {{- include "pihole.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.httpService.type }}
+  ports:
+    - port: {{ .Values.httpService.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector: {{- include "pihole.selectorLabels" . | nindent 4 }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pihole.fullname" . }}-dns
+  labels: {{- include "pihole.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.dnsService.type }}
+  ports:
+    - port: {{ .Values.dnsService.port }}
+      targetPort: dns-tcp
+      protocol: TCP
+      name: dns-tcp
+    - port: {{ .Values.dnsService.port }}
+      targetPort: dns-udp
+      protocol: UDP
+      name: dns-udp
+  selector: {{- include "pihole.selectorLabels" . | nindent 4 }}

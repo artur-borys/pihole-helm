@@ -1,0 +1,1 @@
+Pihole was successfully deployed in your cluster

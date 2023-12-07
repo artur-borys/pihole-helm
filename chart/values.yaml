@@ -1,0 +1,117 @@
+# Default values for pihole.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+image:
+  repository: pihole/pihole
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  {}
+  # fsGroup: 1000
+
+securityContext:
+  {}
+  # allowPrivilegeEscalation: false
+  # capabilities:
+  #   drop:
+  #     - ALL
+  # runAsNonRoot: true
+  # seccompProfile:
+  #   type: RuntimeDefault
+  # runAsUser: 1000
+  # runAsGroup: 1000
+
+httpService:
+  type: ClusterIP
+  port: 80
+
+dnsService:
+  type: ClusterIP
+  port: 53
+
+httpOnHost:
+  enabled: false
+  hostIP: ~
+  hostPort: 80
+
+dnsTcpOnHost:
+  enabled: false
+  hostIP: ~
+  hostPort: 53
+
+dnsUdpOnHost:
+  enabled: false
+  hostIP: ~
+  hostPort: 53
+
+ingress:
+  enabled: false
+  className: ""
+  annotations:
+    {}
+    # kubernetes.io/ingress.class: nginx
+    # kubernetes.io/tls-acme: "true"
+  hosts:
+    - host: chart-example.local
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+  tls: []
+  #  - secretName: chart-example-tls
+  #    hosts:
+  #      - chart-example.local
+
+resources:
+  {}
+  # We usually recommend not to specify default resources and to leave this as a conscious
+  # choice for the user. This also increases chances charts run on environments with little
+  # resources, such as Minikube. If you do want to specify resources, uncomment the following
+  # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+pvc:
+  etc_pihole:
+    storageClassName: ""
+    size: 2Gi
+  etc_dnsmasqd:
+    storageClassName: ""
+    size: 2Gi
+
+auth:
+  password: ""
+  secretName: ""
+
+timezone: UTC
+upstreamDNS:
+  - "8.8.8.8"
+  - "8.8.4.4"
+
+exposeDNSPortOnHost: true
