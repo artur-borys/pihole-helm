@@ -3,7 +3,7 @@
 Hello wanderer!
 
 This Helm chart is not production ready for sure! I'm using it for my private hybrid Kubernetes cluster based on K3s. I wasn't happy with other Helm charts for pihole that I've found.
-I plan to keep this updated, as pihole is an essential part of my private "cloud" and I need to ensure that the latest and greates version is always deployed on my system.
+I plan to keep this updated, as pihole is an essential part of my private "cloud" and I need to ensure that the latest and greatest version is always deployed on my system.
 
 # Example deployment
 
@@ -53,5 +53,5 @@ As you can see, I'm using ingress-nginx controller (outside of the scope for thi
 After creating the `values.yaml` file, you can install this chart:
 
 ```bash
-helm install -n pihole --create-namespace pihole build/pihole-0.1.0.tgz
+helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.0/pihole-0.1.0.tgz -f values.yaml
 ```
