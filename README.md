@@ -49,14 +49,29 @@ dnsTcpOnHost:
 dnsUdpOnHost:
   enabled: true
   hostIP: "10.0.0.10"
+
+# You can set your adlists here
+# They will be loaded on the FIRST startup automatically
+# If you want to keep them in sync on every "helm upgrade", set keepAdlistsInSync: true
+# adlists:
+#   - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+
+# Whether to update gravity.db to contain only adlists present in the ConfigMap on pod start
+# THIS WILL REMOVE ADLISTS WHICH ARE NOT PRESENT IN THE CONFIGMAP!
+keepAdlistsInSync: false
 ```
 
 As you can see, I'm using ingress-nginx controller (outside of the scope for this chart) for the Web UI and I'm also exposing DNS ports on the host where pihole is running.
+
+Here `adlists` is commented out, containing the default value, but you can add more entries there. It will be applied
+only on the first startup of the container, unless you also set `keepAdlistsInSync` to `true`. Do note that
+enabling the sync will remove any adlists not present in the ConfigMap and will also cause the pod to be recreated if the
+`adlists` changes. This is the first step of making the pihole chart support HA.
 
 ## Installation
 
 After creating the `values.yaml` file, you can install this chart:
 
 ```bash
-helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.1/pihole-0.1.1.tgz -f values.yaml
+helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.2/pihole-0.1.2.tgz -f values.yaml
 ```

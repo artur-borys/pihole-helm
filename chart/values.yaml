@@ -114,4 +114,9 @@ upstreamDNS:
   - "8.8.8.8"
   - "8.8.4.4"
 
-exposeDNSPortOnHost: true
+adlists:
+  - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+
+# Whether to update gravity.db to contain only adlists present in the ConfigMap on pod start
+# THIS WILL REMOVE ADLISTS WHICH ARE NOT PRESENT IN THE CONFIGMAP!
+keepAdlistsInSync: false

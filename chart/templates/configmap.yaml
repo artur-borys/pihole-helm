@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pihole.fullname" . }}-adlists
+  labels:
+    {{- include "pihole.labels" . | nindent 4 }}
+data:
+  adlists.list: |-
+    {{- range .Values.adlists }}
+    {{ . }}
+    {{- end }}

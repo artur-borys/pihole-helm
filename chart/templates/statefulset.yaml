@@ -11,10 +11,13 @@ spec:
       {{- include "pihole.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      {{- with .Values.podAnnotations }}
       annotations:
+        {{- if .Values.keepAdlistsInSync }}
+        checksum/adlists: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        {{- end }}
+        {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
-      {{- end }}
+        {{- end }}
       labels:
         {{- include "pihole.selectorLabels" . | nindent 8 }}
     spec:
@@ -29,6 +32,58 @@ spec:
         - name: webpassword
           secret:
             secretName: {{ include "pihole.webpasswordSecretName" . }}
+        - name: adlists
+          configMap:
+            name: {{ include "pihole.fullname" . }}-adlists
+      {{ if .Values.keepAdlistsInSync }}
+      initContainers:
+        - name: "update-adlist"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command:
+            - /bin/bash
+            - -c
+            - |-
+              GRAVITY_DB=/etc/pihole/gravity.db
+              if [ ! -f "${GRAVITY_DB}" ];
+              then
+                echo "gravity.db file not present - exiting"
+                exit 0
+              fi
+
+              echo "gravity.db exists - making sure it's up to date with ConfigMap"
+              sqlite3 "${GRAVITY_DB}" "select address from adlist" > /tmp/adlist
+
+              comm -13 <(sort /adlists.list) <(sort /tmp/adlist) > /tmp/to_delete
+              
+              mapfile -t to_delete </tmp/to_delete
+              
+              for n in "${to_delete[@]}";
+              do
+                echo "Removing $n from gravity.db as it's not present in ConfigMap"
+                sqlite3 "${GRAVITY_DB}" "delete from adlist where address='$n'"
+              done
+
+              mapfile -t to_insert <./adlists.list
+
+              for l in "${to_insert[@]}";
+              do
+                if ! sqlite3 "${GRAVITY_DB}" "insert into adlist (address) values('$l')";
+                then
+                  echo "Address $l already present in gravity"
+                else
+                  echo "Address $l successfully inserted"
+                fi;
+              done;
+          {{ end }}
+          volumeMounts:
+            - name: {{ include "pihole.fullname" . }}-etc-pihole
+              mountPath: /etc/pihole
+            - name: adlists
+              mountPath: /adlists.list
+              subPath: adlists.list
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
@@ -50,6 +105,9 @@ spec:
             - name: webpassword
               mountPath: /opt/secrets/
               readOnly: true
+            - name: adlists
+              mountPath: /etc/pihole/adlists.list
+              subPath: adlists.list
           ports:
             - name: http
               containerPort: 80
