@@ -1,5 +1,7 @@
 # Pihole Helm chart
 
+![Build Status](https://github.com/artur-borys/pihole-helm/actions/workflows/build.yml/badge.svg)
+
 Hello wanderer!
 
 This Helm chart is not production ready for sure! I'm using it for my private hybrid Kubernetes cluster based on K3s. I wasn't happy with other Helm charts for pihole that I've found.
