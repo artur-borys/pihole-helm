@@ -1,7 +1,6 @@
 name: Kubescape scanning for misconfigurations
 
-on:
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:
   kubescape:
@@ -16,7 +15,7 @@ jobs:
       continue-on-error: true
       with:
         format: sarif
-        outputFile: results.sarif
+        outputFile: results
         files: chart
         frameworks: all
     - name: Upload Kubescape scan results to Github Code Scanning
