@@ -13,7 +13,10 @@ spec:
     metadata:
       annotations:
         {{- if .Values.keepAdlistsInSync }}
-        checksum/adlists: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/adlists: {{ include (print $.Template.BasePath "/adlists.yaml") . | sha256sum }}
+        {{- end }}
+        {{- if .Values.restartOnEnvironmentChange }}
+        checksum/environment: {{ include (print $.Template.BasePath "/env.yaml") . | sha256sum }}
         {{- end }}
         {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
@@ -97,6 +100,9 @@ spec:
               value: {{ .Values.timezone }}
             - name: PIHOLE_DNS_
               value: {{ .Values.upstreamDNS | join ";" }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "pihole.fullname" . }}-env
           volumeMounts:
             - name: {{ include "pihole.fullname" . }}-etc-pihole
               mountPath: /etc/pihole

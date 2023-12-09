@@ -120,3 +120,14 @@ adlists:
 # Whether to update gravity.db to contain only adlists present in the ConfigMap on pod start
 # THIS WILL REMOVE ADLISTS WHICH ARE NOT PRESENT IN THE CONFIGMAP!
 keepAdlistsInSync: false
+
+# Custom environment variables. See https://github.com/pi-hole/docker-pi-hole#environment-variables
+environment:
+  {}
+  # DNSSEC: true
+  # DNS_BOGUS_PRIV: true
+  # WEBTHEME: "default-darker"
+  # FTLCONF_RATE_LIMIT: 2000/60
+
+# Whether to restart the pod after Helm upgrade changing the environment ConfigMap
+restartOnEnvironmentChange: false
