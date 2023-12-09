@@ -16,3 +16,9 @@ jobs:
 
     - name: Run build
       run: make build
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3.1.3
+      with:
+        name: chart.tgz
+        path: ${{github.workspace}}/build/pihole*.tgz
