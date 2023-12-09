@@ -16,7 +16,7 @@ jobs:
       continue-on-error: true
       with:
         format: sarif
-        outputFile: results
+        outputFile: results.sarif
         files: chart
         frameworks: all
     - name: Upload Kubescape scan results to Github Code Scanning
