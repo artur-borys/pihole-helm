@@ -38,7 +38,7 @@ spec:
         - name: adlists
           configMap:
             name: {{ include "pihole.fullname" . }}-adlists
-      {{ if .Values.keepAdlistsInSync }}
+      {{- if .Values.keepAdlistsInSync }}
       initContainers:
         - name: "update-adlist"
           securityContext:
@@ -80,13 +80,13 @@ spec:
                   echo "Address $l successfully inserted"
                 fi;
               done;
-          {{ end }}
           volumeMounts:
             - name: {{ include "pihole.fullname" . }}-etc-pihole
               mountPath: /etc/pihole
             - name: adlists
               mountPath: /adlists.list
               subPath: adlists.list
+      {{- end }}
       containers:
         - name: {{ .Chart.Name }}
           securityContext:
