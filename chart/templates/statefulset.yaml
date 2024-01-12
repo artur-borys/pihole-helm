@@ -5,6 +5,7 @@ metadata:
   labels:
     {{- include "pihole.labels" . | nindent 4 }}
 spec:
+  replicas: {{ .Values.replicas }}
   serviceName: {{ .Values.serviceName }}
   selector:
     matchLabels:
@@ -38,7 +39,7 @@ spec:
         - name: adlists
           configMap:
             name: {{ include "pihole.fullname" . }}-adlists
-      {{- if .Values.keepAdlistsInSync }}
+      {{- if and .Values.keepAdlistsInSync .Values.pvc.enabled }}
       initContainers:
         - name: "update-adlist"
           securityContext:
@@ -104,10 +105,12 @@ spec:
             - configMapRef:
                 name: {{ include "pihole.fullname" . }}-env
           volumeMounts:
+          {{- if .Values.pvc.enabled }}
             - name: {{ include "pihole.fullname" . }}-etc-pihole
               mountPath: /etc/pihole
             - name: {{ include "pihole.fullname" . }}-etc-dnsmasqd
               mountPath: /etc/dnsmasq.d
+          {{- end }}
             - name: webpassword
               mountPath: /opt/secrets/
               readOnly: true
@@ -158,6 +161,7 @@ spec:
       tolerations:
         {{- toYaml . | nindent 8 }}
       {{- end }}
+  {{- if .Values.pvc.enabled }}
   volumeClaimTemplates:
     - metadata:
         name: {{ include "pihole.fullname" . }}-etc-pihole
@@ -177,3 +181,4 @@ spec:
         resources:
           requests:
             storage: {{ .Values.pvc.etc_dnsmasqd.size }}
+  {{- end }}

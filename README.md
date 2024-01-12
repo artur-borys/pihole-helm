@@ -23,6 +23,10 @@ ingress:
         - path: /
           pathType: Prefix
 
+# It's possible to run multiple replicas,
+# but the ingress must be configured for sticky sessions
+replicas: 1
+
 resources:
   limits:
     cpu: 200m
@@ -32,6 +36,8 @@ resources:
     memory: 64Mi
 
 pvc:
+  # persistence can be disabled if you don't care about query logs and stats
+  enabled: true
   etc_pihole:
     storageClassName: ""
     size: 1Gi
@@ -72,6 +78,7 @@ environment:
   # DNS_BOGUS_PRIV: "true"
   # WEBTHEME: "default-darker"
   # FTLCONF_RATE_LIMIT: "2000/60"
+  # DNSMASQ_LISTENING: all
 
 # Whether to restart the pod after Helm upgrade changing the environment ConfigMap
 restartOnEnvironmentChange: false
@@ -92,7 +99,7 @@ when the upgrade changes the environment variables.
 After creating the `values.yaml` file, you can install this chart:
 
 ```bash
-helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.3/pihole-0.1.3.tgz -f values.yaml
+helm install -n pihole --create-namespace pihole https://github.com/artur-borys/pihole-helm/releases/download/0.1.6/pihole-0.1.6.tgz -f values.yaml
 ```
 
 ## Modifying configuration
@@ -117,6 +124,76 @@ Pihole docker image can be configured via environment variables (https://github.
 This Helm chart exposes `environment` variable, which is a dict of environment variables. All values must be string, so it's worth quoting them to make sure they will be treated as strings.
 
 By default, the pod won't be automatically restarted upon `environment` change, but this can be turned on by setting `restartOnEnvironmentChange` to `true`.
+
+### Running multiple replicas
+
+It's possible to run multiple instances of pihole, however they are not synchronised, which means that the cache, query logs and stats and other things will differ between instances.
+There's also a caveat that the web GUI won't work without an ingress, and the ingress has to support sticky sessions.
+
+Below you can find example configuration for ingress-nginx:
+
+```yaml
+# Configure ingress-nginx for sticky sessions
+ingress:
+  className: nginx
+  enabled: true
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+    cert-manager.io/private-key-algorithm: ECDSA
+    cert-manager.io/private-key-size: "384"
+    nginx.ingress.kubernetes.io/affinity: cookie
+    nginx.ingress.kubernetes.io/affinity-mode: persistent
+    nginx.ingress.kubernetes.io/session-cookie-secure: "true"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "3600"
+  hosts:
+    - host: "pihole.example.com"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts:
+        - pihole.example.com
+      secretName: ingress-tls
+
+replicas: 3
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 64Mi
+
+# Since stats, query logs etc. will differ on all instances, it doesn't make much sense to persist anything
+pvc:
+  enabled: false
+
+# DNS service config when using MetalLB
+# When using NGINX Ingress, you can also expose UDP/TCP ports: https://kubernetes.github.io/ingress-nginx/user-guide/exposing-tcp-udp-services/
+dnsService:
+  type: LoadBalancer
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: "10.100.0.100"
+
+adlists:
+  - https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+  - https://raw.githubusercontent.com/FiltersHeroes/KADhosts/master/KADhosts.txt
+  - https://raw.githubusercontent.com/MajkiIT/polish-ads-filter/master/polish-pihole-filters/hostfile.txt
+  - https://malware-filter.gitlab.io/malware-filter/urlhaus-filter-hosts-online.txt
+  - https://hole.cert.pl/domains/v2/domains_hosts.txt
+
+# Custom environment variables. See https://github.com/pi-hole/docker-pi-hole#environment-variables
+environment:
+  DNSSEC: "true"
+  DNS_BOGUS_PRIV: "true"
+  WEBTHEME: "default-darker"
+  FTLCONF_RATE_LIMIT: 3000/60
+  DNSMASQ_LISTENING: all
+
+# Whether to restart the pod after Helm upgrade changing the environment ConfigMap
+restartOnEnvironmentChange: true
+```
 
 # Known issues
 

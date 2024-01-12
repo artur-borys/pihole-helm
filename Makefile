@@ -1,3 +1,5 @@
+.PHONY: build
+
 build: chart
 	helm package chart -d build/
 

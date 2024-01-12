@@ -1,7 +1,10 @@
 # Default values for pihole.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
+
+# Image related parameters
 image:
+  # The repository to pull image tags from
   repository: pihole/pihole
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
@@ -10,6 +13,10 @@ image:
 imagePullSecrets: []
 nameOverride: ""
 fullnameOverride: ""
+
+# Number of replicas to run. Do note that the instances are not synced
+# Ingress has to be configured for sticky sessions for the GUI to be functional
+replicas: 1
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -20,12 +27,15 @@ serviceAccount:
   # If not set and create is true, a name is generated using the fullname template
   name: ""
 
+# Custom pod annotations
 podAnnotations: {}
 
+# Custom podSecurityContext
 podSecurityContext:
   {}
   # fsGroup: 1000
 
+# Custom securityContext
 securityContext:
   {}
   # allowPrivilegeEscalation: false
@@ -38,29 +48,37 @@ securityContext:
   # runAsUser: 1000
   # runAsGroup: 1000
 
+# HTTP service parameters
 httpService:
   type: ClusterIP
   port: 80
+  annotations: {}
 
+# DNS Service parameters
 dnsService:
   type: ClusterIP
   port: 53
+  annotations: {}
 
+# HTTP port binding on host
 httpOnHost:
   enabled: false
   hostIP: ~
   hostPort: 80
 
+# DNS TCP port binding on host
 dnsTcpOnHost:
   enabled: false
   hostIP: ~
   hostPort: 53
 
+# DNS UDP port binding on host
 dnsUdpOnHost:
   enabled: false
   hostIP: ~
   hostPort: 53
 
+# Ingress configuration
 ingress:
   enabled: false
   className: ""
@@ -98,6 +116,7 @@ tolerations: []
 affinity: {}
 
 pvc:
+  enabled: true
   etc_pihole:
     storageClassName: ""
     size: 2Gi

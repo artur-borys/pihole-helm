@@ -3,6 +3,10 @@ kind: Service
 metadata:
   name: {{ include "pihole.fullname" . }}-http
   labels: {{- include "pihole.labels" . | nindent 4 }}
+  {{ if .Values.httpService.annotations }}
+  annotations:
+    {{- .Values.httpService.annotations | toYaml | nindent 4 }}
+  {{ end }}
 spec:
   type: {{ .Values.httpService.type }}
   ports:
@@ -17,6 +21,10 @@ kind: Service
 metadata:
   name: {{ include "pihole.fullname" . }}-dns
   labels: {{- include "pihole.labels" . | nindent 4 }}
+  {{ if .Values.dnsService.annotations }}
+  annotations:
+    {{- .Values.dnsService.annotations | toYaml | nindent 4 }}
+  {{ end }}
 spec:
   type: {{ .Values.dnsService.type }}
   ports:
