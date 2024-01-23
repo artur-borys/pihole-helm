@@ -1,0 +1,24 @@
+{{- if .Values.exporter.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "pihole.fullname" . }}-exporter
+  labels:
+    {{- include "pihole.labels" . | nindent 4 }}
+    {{- if .Values.exporter.service.labels }}
+    {{- .Values.exporter.service.labels | toYaml | nindent 4 }}
+    {{- end }}
+  {{- if .Values.exporter.service.annotations }}
+  annotations:
+    {{- .Values.exporter.service.annotations | toYaml | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.exporter.service.type }}
+  ports:
+    - port: {{ .Values.exporter.service.port }}
+      targetPort: exporter
+      protocol: TCP
+      name: exporter
+  selector: {{- include "exporter.selectorLabels" . | nindent 4 }}
+{{- end }}

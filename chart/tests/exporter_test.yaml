@@ -1,0 +1,35 @@
+suite: test exporter
+tests:
+  - it: should create deployment when exporter is enabled
+    template: exporter-deployment.yaml
+    asserts:
+      - isKind:
+          of: Deployment
+      - matchRegex:
+          path: metadata.name
+          pattern: -pihole-exporter$
+
+  - it: should not create deployment when exporter is disabled
+    template: exporter-deployment.yaml
+    set:
+      exporter.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0
+
+  - it: should create service for exporter when enabled
+    template: exporter-service.yaml
+    asserts:
+      - isKind:
+          of: Service
+      - matchRegex:
+          path: metadata.name
+          pattern: -pihole-exporter$
+
+  - it: should not create service for exporter when disabled
+    template: exporter-service.yaml
+    set:
+      exporter.enabled: false
+    asserts:
+      - hasDocuments:
+          count: 0

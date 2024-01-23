@@ -6,7 +6,7 @@ metadata:
     {{- include "pihole.labels" . | nindent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
-  serviceName: {{ .Values.serviceName }}
+  serviceName: {{ include "pihole.fullname" . }}
   selector:
     matchLabels:
       {{- include "pihole.selectorLabels" . | nindent 6 }}
