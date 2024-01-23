@@ -51,6 +51,25 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
+Exporter selector labels
+*/}}
+{{- define "exporter.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "pihole.name" . }}-exporter
+app.kubernetes.io/instance: {{ .Release.Name }}
+{{- end }}
+
+{{/*
+Exporter targets
+*/}}
+{{- define "exporter.targets" -}}
+{{- $piholes := list }}
+{{- range $i, $e  := until (int .Values.replicas) }}
+  {{- $piholes = printf "%s-%d.%s" (include "pihole.fullname" $) . (include "pihole.fullname" $) | append $piholes }}
+{{- end }}
+{{- join "," $piholes }}
+{{- end }}
+
+{{/*
 Create the name of the service account to use
 */}}
 {{- define "pihole.serviceAccountName" -}}

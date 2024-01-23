@@ -48,16 +48,22 @@ securityContext:
   # runAsUser: 1000
   # runAsGroup: 1000
 
+headlessService:
+  labels: {}
+  annotations: {}
+
 # HTTP service parameters
 httpService:
   type: ClusterIP
   port: 80
+  labels: {}
   annotations: {}
 
 # DNS Service parameters
 dnsService:
   type: ClusterIP
   port: 53
+  labels: {}
   annotations: {}
 
 # HTTP port binding on host
@@ -151,3 +157,16 @@ environment:
 
 # Whether to restart the pod after Helm upgrade changing the environment ConfigMap
 restartOnEnvironmentChange: false
+
+exporter:
+  enabled: true
+  image:
+    repository: ekofr/pihole-exporter
+    pullPolicy: Always
+    tag: latest
+
+  service:
+    type: ClusterIP
+    port: 9617
+    annotations: {}
+    labels: {}

@@ -1,0 +1,151 @@
+suite: test statefulset
+templates:
+  - statefulset.yaml
+  - adlists.yaml
+  - env.yaml
+tests:
+  - it: should be a statefulset with latest pihole tag
+    template: statefulset.yaml
+    set:
+      image.tag: latest
+    asserts:
+      - isKind:
+          of: StatefulSet
+      - matchRegex:
+          path: metadata.name
+          pattern: -pihole$
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: pihole/pihole:latest
+
+  - it: should have checksum/adlist annotation when keepAdlistsInSync is true
+    set:
+      keepAdlistsInSync: true
+    template: statefulset.yaml
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["checksum/adlists"]
+
+  - it: should have checksum/environment annotation when restartOnEnvironmentChange is true
+    set:
+      restartOnEnvironmentChange: true
+    template: statefulset.yaml
+    asserts:
+      - exists:
+          path: spec.template.metadata.annotations["checksum/environment"]
+
+  - it: should include init containers when keepAdlistsInSync is true and persistence is enabled
+    set:
+      keepAdlistsInSync: true
+      pvc.enabled: true
+    template: statefulset.yaml
+    asserts:
+      - exists:
+          path: spec.template.spec.initContainers
+
+  - it: should not include init containers when keepAdlistsInSync is false
+    set:
+      keepAdlistsInSync: false
+      pvc.enabled: true
+    template: statefulset.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: should not include init containers when persistence is disabled
+    set:
+      keepAdlistsInSync: true
+      pvc.enabled: false
+    template: statefulset.yaml
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: should not contain PVC when persistence is disabled
+    set:
+      pvc.enabled: false
+    template: statefulset.yaml
+    asserts:
+      - notExists:
+          path: spec.volumeClaimTemplates
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/pihole
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/dnsmasq.d
+
+  - it: should contain PVC when persistence is enabled
+    set:
+      pvc.enabled: true
+    template: statefulset.yaml
+    asserts:
+      - exists:
+          path: spec.volumeClaimTemplates
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/pihole
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            mountPath: /etc/dnsmasq.d
+          any: true
+
+  - it: should not expose host ports when they are disabled
+    set:
+      dnsTcpOnHost:
+        enabled: false
+        hostPort: 0
+      dnsUdpOnHost:
+        enabled: false
+        hostPort: 1
+      httpOnHost:
+        enabled: false
+        hostPort: 2
+    template: statefulset.yaml
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 0
+      - notContains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 1
+      - notContains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 2
+
+  - it: should expose host ports when they are enabled
+    set:
+      dnsTcpOnHost:
+        enabled: true
+        hostPort: 0
+      dnsUdpOnHost:
+        enabled: true
+        hostPort: 1
+      httpOnHost:
+        enabled: true
+        hostPort: 2
+    template: statefulset.yaml
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 0
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 1
+          any: true
+      - contains:
+          path: spec.template.spec.containers[0].ports
+          content:
+            hostPort: 2
+          any: true
