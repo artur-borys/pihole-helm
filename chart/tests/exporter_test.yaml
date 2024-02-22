@@ -1,6 +1,8 @@
 suite: test exporter
 tests:
   - it: should create deployment when exporter is enabled
+    set:
+      exporter.enabled: true
     template: exporter-deployment.yaml
     asserts:
       - isKind:
@@ -18,6 +20,8 @@ tests:
           count: 0
 
   - it: should create service for exporter when enabled
+    set:
+      exporter.enabled: true
     template: exporter-service.yaml
     asserts:
       - isKind:
