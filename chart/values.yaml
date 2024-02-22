@@ -159,7 +159,7 @@ environment:
 restartOnEnvironmentChange: false
 
 exporter:
-  enabled: true
+  enabled: false
   image:
     repository: ekofr/pihole-exporter
     pullPolicy: Always
