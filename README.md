@@ -1,4 +1,8 @@
-# Pihole Helm chart
+# Pihole Helm chart (discontinued)
+
+> DISCONTINUED - IMPORTANT
+>
+> Since this project didn't gain any attention (I didn't promote it anywhere), I decided to discontinue it. It's just simpler to run it with Docker Compose. When things go wrong on Kubernetes, things really go south, so it's not the best platform to run essential services, like a DNS resolver.
 
 ![Build Status](https://github.com/artur-borys/pihole-helm/actions/workflows/build.yml/badge.svg)
 
